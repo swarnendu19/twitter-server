@@ -17,24 +17,37 @@ const express_1 = __importDefault(require("express"));
 const server_1 = require("@apollo/server");
 const express4_1 = require("@apollo/server/express4");
 const body_parser_1 = __importDefault(require("body-parser"));
+const db_1 = require("../clients/db");
 function initServer() {
     return __awaiter(this, void 0, void 0, function* () {
         const app = (0, express_1.default)();
-        app.use(body_parser_1.default.json);
+        app.use(body_parser_1.default.json());
         const graphqlServer = new server_1.ApolloServer({
             typeDefs: `
-        type Query{
-
-        }
-
-
-        type Mutation{
-
-        }
+            type Query {
+                hello: String
+            }
+            type Mutation {
+                createUser(email: String!, password: String!, firstName: String!, lastName: String!): Boolean
+            }
         `,
             resolvers: {
-                Query: {},
-                Muatation: {}
+                Query: {
+                    hello: () => `Hello from GraphQL`
+                },
+                Mutation: {
+                    createUser: (_1, _a) => __awaiter(this, [_1, _a], void 0, function* (_, { firstName, lastName, email, password }) {
+                        yield db_1.prismaClient.user.create({
+                            data: {
+                                email,
+                                password,
+                                lastName,
+                                firstName,
+                            }
+                        });
+                        return true;
+                    })
+                }
             }
         });
         yield graphqlServer.start();
@@ -43,3 +56,4 @@ function initServer() {
     });
 }
 exports.initServer = initServer;
+initServer();
