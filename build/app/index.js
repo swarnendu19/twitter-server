@@ -18,23 +18,23 @@ const server_1 = require("@apollo/server");
 const express4_1 = require("@apollo/server/express4");
 const body_parser_1 = __importDefault(require("body-parser"));
 const db_1 = require("../clients/db");
+const user_1 = require("./user");
 function initServer() {
     return __awaiter(this, void 0, void 0, function* () {
         const app = (0, express_1.default)();
         app.use(body_parser_1.default.json());
         const graphqlServer = new server_1.ApolloServer({
             typeDefs: `
+            ${user_1.User.types}
             type Query {
-                hello: String
+                ${user_1.User.queries}
             }
             type Mutation {
                 createUser(email: String!, password: String!, firstName: String!, lastName: String!): Boolean
             }
         `,
             resolvers: {
-                Query: {
-                    hello: () => `Hello from GraphQL`
-                },
+                Query: Object.assign({}, user_1.User.resolvers.queries),
                 Mutation: {
                     createUser: (_1, _a) => __awaiter(this, [_1, _a], void 0, function* (_, { firstName, lastName, email, password }) {
                         yield db_1.prismaClient.user.create({

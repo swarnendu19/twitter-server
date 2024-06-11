@@ -3,6 +3,7 @@ import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
 import bodyParser from "body-parser";
 import { prismaClient } from "../clients/db";
+import { User } from "./user";
 
 export async function initServer() {
     const app = express();
@@ -11,8 +12,9 @@ export async function initServer() {
     
     const graphqlServer = new ApolloServer({
         typeDefs: `
+            ${User.types}
             type Query {
-                hello: String
+                ${User.queries}
             }
             type Mutation {
                 createUser(email: String!, password: String!, firstName: String!, lastName: String!): Boolean
@@ -20,8 +22,8 @@ export async function initServer() {
         `,
         resolvers: {
             Query: {
-                hello: () => `Hello from GraphQL`
-            },
+                ...User.resolvers.queries
+             },
             Mutation: {
                 createUser: async (_, { firstName, lastName, email, password }: { firstName: string, lastName: string, email: string, password: string }) => {
                     await prismaClient.user.create({
