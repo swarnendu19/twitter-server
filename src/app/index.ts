@@ -29,7 +29,7 @@ export async function initServer() {
                     await prismaClient.user.create({
                         data: {
                             email,
-                            password,
+                      
                             lastName,
                             firstName,
                         }

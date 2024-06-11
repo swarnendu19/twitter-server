@@ -40,7 +40,6 @@ function initServer() {
                         yield db_1.prismaClient.user.create({
                             data: {
                                 email,
-                                password,
                                 lastName,
                                 firstName,
                             }
