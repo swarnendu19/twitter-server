@@ -14,45 +14,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initServer = void 0;
 const express_1 = __importDefault(require("express"));
-const server_1 = require("@apollo/server");
 const express4_1 = require("@apollo/server/express4");
 const body_parser_1 = __importDefault(require("body-parser"));
-const db_1 = require("../clients/db");
-const user_1 = require("./user");
 const cors_1 = __importDefault(require("cors"));
+const graphql_1 = __importDefault(require("./graphql"));
+const jwt_1 = __importDefault(require("../services/jwt"));
 function initServer() {
     return __awaiter(this, void 0, void 0, function* () {
         const app = (0, express_1.default)();
         app.use(body_parser_1.default.json());
         app.use((0, cors_1.default)());
-        const graphqlServer = new server_1.ApolloServer({
-            typeDefs: `
-            ${user_1.User.types}
-            type Query {
-                ${user_1.User.queries}
-            }
-            type Mutation {
-                createUser(email: String!, password: String!, firstName: String!, lastName: String!): Boolean
-            }
-        `,
-            resolvers: {
-                Query: Object.assign({}, user_1.User.resolvers.queries),
-                Mutation: {
-                    createUser: (_1, _a) => __awaiter(this, [_1, _a], void 0, function* (_, { firstName, lastName, email, password }) {
-                        yield db_1.prismaClient.user.create({
-                            data: {
-                                email,
-                                lastName,
-                                firstName,
-                            }
-                        });
-                        return true;
-                    })
-                }
-            }
-        });
-        yield graphqlServer.start();
-        app.use('/graphql', (0, express4_1.expressMiddleware)(graphqlServer));
+        const graphqlServer = yield (0, graphql_1.default)();
+        app.use('/graphql', (0, express4_1.expressMiddleware)(graphqlServer, {
+            context: (_a) => __awaiter(this, [_a], void 0, function* ({ req, res }) {
+                return {
+                    user: req.headers.authorization ? jwt_1.default.decodeToken(req.headers.authorization.split("Bearer ")[1]) : undefined
+                };
+            })
+        }));
         return app;
     });
 }

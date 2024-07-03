@@ -24,6 +24,7 @@ const queries = {
         const { data } = yield axios_1.default.get(googleOauthURL.toString(), {
             responseType: 'json'
         });
+        console.log(data);
         const user = yield db_1.prismaClient.user.findUnique({
             where: { email: data.email },
         });
@@ -45,6 +46,15 @@ const queries = {
         }
         const userToken = yield jwt_1.default.generateTokenForUser(userInDb);
         return userToken;
+    }),
+    getCurrentUser: (parent, args, context) => __awaiter(void 0, void 0, void 0, function* () {
+        var _b;
+        const id = (_b = context.user) === null || _b === void 0 ? void 0 : _b.id;
+        if (!id) {
+            return null;
+        }
+        const user = yield db_1.prismaClient.user.findUnique({ where: { id } });
+        return user;
     })
 };
 exports.resolvers = { queries };
